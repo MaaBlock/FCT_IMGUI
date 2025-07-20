@@ -1,0 +1,6 @@
+[submodule "platform"]
+	path = platform
+	url = https://github.com/MaaBlock/FCT_PlatformConfig
+[submodule "imgui"]
+	path = imgui
+	url = https://github.com/MaaBlock/imgui
