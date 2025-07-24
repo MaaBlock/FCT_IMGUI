@@ -5,9 +5,19 @@
 #ifndef FCT_IMGUI_HEADERS_H
 #define FCT_IMGUI_HEADERS_H
 #include "./ThirdParty.h"
-#include <FCT/headers.h>
 #include "ImguiContext.h"
 namespace FCT {
+    class ImguiModule
+    {
+    protected:
+        static bool s_initialized;
+    public:
+        static void Init();
+        static void Term();
+        ImguiModule();
+        ~ImguiModule();
+        ImguiContext* createContext(Window* wnd,Context* ctx);
+    };
     void InitImgui();
 }
 

@@ -61,3 +61,6 @@ target_link_libraries(FCT_IMGUI PRIVATE FCT
         ${Vulkan_LIBRARIES}
 )
 
+function(target_link_fct_imgui_libraries target_name)
+    target_link_libraries(${target_name} FCT_IMGUI)
+endfunction()

@@ -1,25 +1,22 @@
-//
-// Created by Administrator on 2025/4/26.
-//
-#include "FCT/FCTAPI.h"
 #ifndef VK_GLFW_IMGUICONTEXT_H
 #define VK_GLFW_IMGUICONTEXT_H
-
+#include "ImguiContext.h"
 
 struct ImGui_ImplGlfw_Data;
 
 namespace FCT
 {
-    class GLFW_VK_ImGuiContext;
+    class GLFW_Window;
+    class GLFW_VK_ImguiContext;
     using ImguiTask = std::function<void()>;
     struct ImguiJob : public SubmitJob
     {
-        GLFW_VK_ImGuiContext* m_imguiCtx;
+        GLFW_VK_ImguiContext* m_imguiCtx;
         std::queue<ImguiTask> m_tasks;
         static double m_lastFrameTime;
         static double m_targetFrameTime;
         static bool m_enableFrameLimiter;
-        ImguiJob(GLFW_VK_ImGuiContext* ctx)
+        ImguiJob(GLFW_VK_ImguiContext* ctx)
         {
             m_imguiCtx = ctx;
         }
@@ -29,7 +26,7 @@ namespace FCT
         }
         void submit(RHI::CommandBuffer* cmdBuf) override;
     };
-    class GLFW_VK_ImGuiContext
+    class GLFW_VK_ImguiContext : public ImguiContext
     {
     protected:
         RHI::PassGroup* m_passGroup;
@@ -37,9 +34,31 @@ namespace FCT
         VK_Context* m_ctx;
         std::string m_passName;
         ImguiJob* m_currentJob;
+        std::queue<UIDeclare> m_uiDeclares[2];
+        uint32_t m_currentPush;
+        uint32_t m_currentShow;
    public:
-        GLFW_VK_ImGuiContext(GLFW_Window* wnd,VK_Context* ctx);
-        ~GLFW_VK_ImGuiContext();
+        GLFW_VK_ImguiContext(GLFW_Window* wnd,VK_Context* ctx);
+        ~GLFW_VK_ImguiContext();
+        void push(UIDeclare uiFunc) override
+        {
+            m_uiDeclares[m_currentPush].push(uiFunc);
+        }
+        void swapBuffer() override
+        {
+            std::swap(m_currentPush, m_currentShow);
+        }
+        void submit(RHI::CommandBuffer* cmdBuf) override
+        {
+            newFrame();
+            while (!m_uiDeclares[m_currentShow].empty()) {
+                auto uiFunc = m_uiDeclares[m_currentShow].front();
+                uiFunc();
+                m_uiDeclares[m_currentShow].pop();
+            }
+            render();
+            drawData(cmdBuf);
+        }
         void newFrame();
         void submitJob()
         {
@@ -139,7 +158,7 @@ namespace FCT
         }
     }
 
-    inline GLFW_VK_ImGuiContext::GLFW_VK_ImGuiContext(GLFW_Window* wnd, VK_Context* ctx)
+    inline GLFW_VK_ImguiContext::GLFW_VK_ImguiContext(GLFW_Window* wnd, VK_Context* ctx)
     {
         m_wnd = wnd;
         m_ctx = ctx;
@@ -147,9 +166,11 @@ namespace FCT
         ImguiJob::m_lastFrameTime = glfwGetTime();
         ImguiJob::m_targetFrameTime = 1.0 / 60.0;
         ImguiJob::m_enableFrameLimiter = false;
+        m_currentPush = 0;
+        m_currentShow = 1;
     }
 
-    inline GLFW_VK_ImGuiContext::~GLFW_VK_ImGuiContext()
+    inline GLFW_VK_ImguiContext::~GLFW_VK_ImguiContext()
     {
         if (m_currentJob)
         {
@@ -159,7 +180,7 @@ namespace FCT
     }
 
 
-    inline void GLFW_VK_ImGuiContext::newFrame()
+    inline void GLFW_VK_ImguiContext::newFrame()
     {
         ImGui_ImplVulkan_NewFrame();
         newFrame_updataSize();
@@ -170,7 +191,7 @@ namespace FCT
     }
 
 
-    inline void GLFW_VK_ImGuiContext::submitTick(RHI::CommandBuffer* cmdBuffer)
+    inline void GLFW_VK_ImguiContext::submitTick(RHI::CommandBuffer* cmdBuffer)
     {
 
         ImGui::Render();
@@ -180,12 +201,12 @@ namespace FCT
         ImGui_ImplVulkan_RenderDrawData(drawData, vkCmdBuffer);
     }
 
-    inline void GLFW_VK_ImGuiContext::render()
+    inline void GLFW_VK_ImguiContext::render()
     {
         ImGui::Render();
     }
 
-    inline void GLFW_VK_ImGuiContext::drawData(RHI::CommandBuffer* cmdBuffer)
+    inline void GLFW_VK_ImguiContext::drawData(RHI::CommandBuffer* cmdBuffer)
     {
 
         ImDrawData* drawData = ImGui::GetDrawData();
@@ -195,7 +216,7 @@ namespace FCT
     }
 
 
-    inline void GLFW_VK_ImGuiContext::newFrame_updataSize()
+    inline void GLFW_VK_ImguiContext::newFrame_updataSize()
     {
         ImGuiIO& io = ImGui::GetIO();
         int width, height;
@@ -210,7 +231,7 @@ namespace FCT
         if (width > 0 && height > 0)
             io.DisplayFramebufferScale = ImVec2((float)display_width / (float)width, (float)display_height / (float)height);
     }
-    inline void GLFW_VK_ImGuiContext::newFrame_UpdateMouseData()
+    inline void GLFW_VK_ImguiContext::newFrame_UpdateMouseData()
     {
         ImGui_ImplGlfw_Data* bd = ImGui_ImplGlfw_GetBackendData();
         ImGuiIO& io = ImGui::GetIO();
@@ -289,7 +310,7 @@ namespace FCT
         if (io.BackendFlags & ImGuiBackendFlags_HasMouseHoveredViewport)
             io.AddMouseViewportEvent(mouse_viewport_id);
     }
-    inline void GLFW_VK_ImGuiContext::newFrame_updataTime()
+    inline void GLFW_VK_ImguiContext::newFrame_updataTime()
     {
         ImGuiIO& io = ImGui::GetIO();
         ImGui_ImplGlfw_Data* bd = ImGui_ImplGlfw_GetBackendData();
@@ -300,7 +321,7 @@ namespace FCT
         bd->Time = current_time;
     }
 
-    inline void GLFW_VK_ImGuiContext::newFrame_UpdateMonitors()
+    inline void GLFW_VK_ImguiContext::newFrame_UpdateMonitors()
     {
         ImGuiPlatformIO& platform_io = ImGui::GetPlatformIO();
 
@@ -345,7 +366,7 @@ namespace FCT
     }
     static inline float Saturate(float v) { return v < 0.0f ? 0.0f : v  > 1.0f ? 1.0f : v; }
 
-   inline void GLFW_VK_ImGuiContext::newFrame_updateMouseCursor()
+   inline void GLFW_VK_ImguiContext::newFrame_updateMouseCursor()
     {
         ImGuiIO& io = ImGui::GetIO();
         ImGui_ImplGlfw_Data* bd = ImGui_ImplGlfw_GetBackendData();
@@ -398,7 +419,7 @@ namespace FCT
         }
     }
 
-   inline void GLFW_VK_ImGuiContext::newFrame_UpdateGamepads()
+   inline void GLFW_VK_ImguiContext::newFrame_UpdateGamepads()
    {
     ImGuiIO& io = ImGui::GetIO();
     if ((io.ConfigFlags & ImGuiConfigFlags_NavEnableGamepad) == 0) // FIXME: Technically feeding gamepad shouldn't depend on this now that they are regular inputs, but see #8075
@@ -449,7 +470,7 @@ namespace FCT
     #undef MAP_ANALOG
    }
 
-   inline void GLFW_VK_ImGuiContext::newFrame_updateInput()
+   inline void GLFW_VK_ImguiContext::newFrame_updateInput()
    {
         ImGui_ImplGlfw_Data* bd = ImGui_ImplGlfw_GetBackendData();
         bd->MouseIgnoreButtonUp = false;
