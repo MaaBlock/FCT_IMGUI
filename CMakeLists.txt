@@ -21,6 +21,7 @@ file(GLOB FCT_IMGUI_HEADERS
 list(FILTER FCT_IMGUI_HEADERS EXCLUDE REGEX ".*FCT_IMGUI\\.h$")
 
 add_library(FCT_IMGUI STATIC
+        src/ImguiContext.cpp
         src/headers.cpp
         ${IMGUI_SOURCES}
 )
