@@ -32,5 +32,29 @@ namespace FCT {
     private:
 
     };
+
+    inline bool SliderVec3(const char* label, Vec3& vec, float v_min, float v_max,
+                       const char* format, ImGuiSliderFlags flags) {
+        float values[3] = { vec.x, vec.y, vec.z };
+        bool changed = ::ImGui::SliderFloat3(label, values, v_min, v_max, format, flags);
+        if (changed) {
+            vec.x = values[0];
+            vec.y = values[1];
+            vec.z = values[2];
+        }
+        return changed;
+    }
+    inline bool SliderVec4(const char* label, Vec4& vec, float v_min, float v_max,
+                   const char* format, ImGuiSliderFlags flags) {
+        float values[4] = { vec.x, vec.y, vec.z, vec.w };
+        bool changed = ::ImGui::SliderFloat4(label, values, v_min, v_max, format, flags);
+        if (changed) {
+            vec.x = values[0];
+            vec.y = values[1];
+            vec.z = values[2];
+            vec.w = values[3];
+        }
+        return changed;
+    }
 }
 #endif //IMGUICONTEXT_H
