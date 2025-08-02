@@ -27,6 +27,9 @@ namespace FCT {
          * @param pass The pass to create imgui context
          */
         virtual void create(RHI::Pass* pass) = 0;
+        virtual void addTexture(std::string name,Image* image) = 0;
+        virtual void updateTexture(std::string name) = 0;
+        virtual ImTextureID getTexture(std::string name) = 0;
         bool enableChinese(float size = 18.0f,const char* fontPath = "C:\\Windows\\Fonts\\simsun.ttc");
 
     private:

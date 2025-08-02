@@ -37,9 +37,71 @@ namespace FCT
         std::queue<UIDeclare> m_uiDeclares[2];
         uint32_t m_currentPush;
         uint32_t m_currentShow;
+        std::unordered_map<std::string,Image*> m_textures;
+        std::unordered_map<std::string,std::vector<VkDescriptorSet>> m_textureIds;
+        RHI::VK_Sampler* m_sampler;
    public:
         GLFW_VK_ImguiContext(GLFW_Window* wnd,VK_Context* ctx);
         ~GLFW_VK_ImguiContext();
+        void addTexture(std::string name,MutilBufferImage* image)
+        {
+            m_textures[name] = image;
+            std::vector<RHI::TextureView*> rhiTextureViews =  image->tvs();
+            for (uint32_t i = 0; i < image->imageCount(); ++i) {
+                RHI::VK_TextureView* tv = static_cast<RHI::VK_TextureView*>(rhiTextureViews[i]);
+                vk::ImageView imageViewVk = tv->view();
+                vk::Sampler samplerVk = m_sampler->getSampler();
+                VkDescriptorSet descriptorSet = ImGui_ImplVulkan_AddTexture(
+                   samplerVk,imageViewVk ,VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+                m_textureIds[name].push_back(descriptorSet);
+            }
+        }
+        ImTextureID getTexture(std::string name) override
+        {
+            auto it = m_textureIds.find(name);
+            if (it!= m_textureIds.end())
+            {
+                return reinterpret_cast<ImTextureID>(it->second[0]);
+            }
+            return reinterpret_cast<ImTextureID>(nullptr);
+        }
+        void addTexture(std::string name,SingleBufferImage* image)
+        {
+            m_textures[name] = image;
+            image->currentTextureView();
+            RHI::VK_TextureView* tv = static_cast<RHI::VK_TextureView*>(image->currentTextureView());
+            vk::ImageView imageViewVk = tv->view();
+            vk::Sampler samplerVk = m_sampler->getSampler();
+            VkDescriptorSet descriptorSet = ImGui_ImplVulkan_AddTexture(
+               samplerVk,imageViewVk ,VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+            m_textureIds[name].push_back(descriptorSet);
+        }
+        void addTexture(std::string name,Image* image)
+        {
+             if (dynamic_cast<MutilBufferImage*>(image))
+             {
+                 addTexture(name, static_cast<MutilBufferImage*>(image));
+             } else
+             {
+                 addTexture(name, static_cast<SingleBufferImage*>(image));
+             }
+        }
+        void removeTexture(std::string name)
+        {
+            for (auto ds : m_textureIds[name])
+            {
+                ImGui_ImplVulkan_RemoveTexture(ds);
+            }
+            m_textures.erase(name);
+            m_textureIds.erase(name);
+        }
+        void updateTexture(std::string name)
+        {
+            auto image = m_textures[name];
+            removeTexture(name);
+            addTexture(name, image);
+        }
+
         void push(UIDeclare uiFunc) override
         {
             m_uiDeclares[m_currentPush].push(uiFunc);
@@ -73,6 +135,7 @@ namespace FCT
         void submitTick(RHI::CommandBuffer* cmdBuffer);
         void render();
         void drawData(RHI::CommandBuffer* cmdBuffer);
+
         void create(RHI::Pass* pass)
         {
             m_passGroup = pass->group();
@@ -97,6 +160,9 @@ namespace FCT
             {
                 newFrame_updateInput();
             });
+            m_sampler = static_cast<RHI::VK_Sampler*>(m_ctx->createResource<Sampler>());
+            m_sampler->setLinear();
+            m_sampler->create();
         }
         void attachPass(const std::string& name)
         {
@@ -172,6 +238,10 @@ namespace FCT
 
     inline GLFW_VK_ImguiContext::~GLFW_VK_ImguiContext()
     {
+        for (auto img : m_textures)
+        {
+            removeTexture(img.first);
+        }
         if (m_currentJob)
         {
             m_currentJob->release();
