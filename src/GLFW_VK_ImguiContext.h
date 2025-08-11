@@ -167,7 +167,7 @@ namespace FCT
         void attachPass(const std::string& name)
         {
             m_passName = name;
-            Pass* pass = m_ctx->findPass(name);
+            OldPass* pass = m_ctx->findPass(name);
             RHI::Pass* rhiPass = pass->rhiPass();
             create(rhiPass);
             m_currentJob = new ImguiJob(this);
