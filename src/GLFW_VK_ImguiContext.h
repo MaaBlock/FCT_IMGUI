@@ -147,7 +147,7 @@ namespace FCT
             initInfo.QueueFamily = m_ctx->getGraphicsQueueFamily();
             initInfo.Queue = m_ctx->getGraphicsQueue();
             initInfo.PipelineCache = nullptr;
-            initInfo.DescriptorPool = static_cast<RHI::VK_DescriptorPool*>(m_ctx->getDescriptorPool(m_wnd))->getPool();
+            initInfo.DescriptorPool = static_cast<RHI::VK_DescriptorPool*>(m_ctx->getDescriptorPool())->getPool();
             initInfo.Allocator = nullptr;
             initInfo.MinImageCount = 2;
             initInfo.ImageCount = m_wnd->getSwapchainImageCount();
