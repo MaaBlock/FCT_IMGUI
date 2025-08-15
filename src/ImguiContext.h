@@ -6,8 +6,17 @@
 #define IMGUICONTEXT_H
 namespace FCT {
     using UIDeclare = std::function<void(void)>;
-    class ImguiContext {
-      public:
+    enum class ImguiContextCreateFlag
+    {
+        Docking = 1 << 0,
+        NavKeyboard = 1 << 1,
+        Default = 0,
+    };
+    FCT_DECLARE_FLAGS(ImguiContextCreateFlag);
+    class ImguiContext
+    {
+    public:
+        ImguiContext();
         virtual ~ImguiContext() = default;
         /**
          * @brief push the declaration for imgui to the back buffer
@@ -27,18 +36,21 @@ namespace FCT {
          * @brief build imgui context
          * @param pass The pass to create imgui context
          */
-        virtual void create(RHI::Pass* pass) = 0;
+        virtual void createPlatform() = 0;
+        void create(ImguiContextCreateFlags flags = ImguiContextCreateFlag::Default);
+        ;
+        void pass(RHI::Pass* pass);
         virtual void addTexture(std::string name,Image* image) = 0;
         virtual void updateTexture(std::string name) = 0;
         virtual ImTextureID getTexture(std::string name) = 0;
         bool enableChinese(float size = 18.0f,const char* fontPath = "C:\\Windows\\Fonts\\simsun.ttc");
-
-    private:
-
+    protected:
+        RHI::Pass* m_pass;
     };
 
+
     inline bool SliderVec3(const char* label, Vec3& vec, float v_min, float v_max,
-                       const char* format, ImGuiSliderFlags flags) {
+                           const char* format, ImGuiSliderFlags flags) {
         float values[3] = { vec.x, vec.y, vec.z };
         bool changed = ::ImGui::SliderFloat3(label, values, v_min, v_max, format, flags);
         if (changed) {

@@ -107,9 +107,9 @@ namespace FCT
         void submitTick(RHI::CommandBuffer* cmdBuffer);
         void render();
         void drawData(RHI::CommandBuffer* cmdBuffer);
-        void create(RHI::Pass* pass)
+        void createPlatform() override
         {
-            m_passGroup = pass->group();
+            m_passGroup = m_pass->group();
             ImGui_ImplGlfw_InitForVulkan(m_wnd->getWindow(),true);
             ImGui_ImplVulkan_InitInfo initInfo{};
             initInfo.Instance = m_ctx->getVkInstance();
@@ -125,7 +125,7 @@ namespace FCT
             initInfo.MSAASamples = static_cast<VkSampleCountFlagBits>(ToVkSampleCount(m_wnd->getSwapchainSampleCount()));
             initInfo.CheckVkResultFn = nullptr;
             initInfo.RenderPass = static_cast<RHI::VK_PassGroup*>(m_passGroup)->getRenderPass();
-            initInfo.Subpass = pass->index();
+            initInfo.Subpass = m_pass->index();
             ImGui_ImplVulkan_Init(&initInfo);
             m_wnd->postTicker([this]()
             {
