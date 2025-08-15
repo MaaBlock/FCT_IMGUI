@@ -8,6 +8,7 @@ namespace FCT {
     using UIDeclare = std::function<void(void)>;
     class ImguiContext {
       public:
+        virtual ~ImguiContext() = default;
         /**
          * @brief push the declaration for imgui to the back buffer
          * @param uiFunc declaration for UI rendering

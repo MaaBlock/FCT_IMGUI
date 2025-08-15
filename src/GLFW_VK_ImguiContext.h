@@ -9,23 +9,6 @@ namespace FCT
     class GLFW_Window;
     class GLFW_VK_ImguiContext;
     using ImguiTask = std::function<void()>;
-    struct ImguiJob : public SubmitJob
-    {
-        GLFW_VK_ImguiContext* m_imguiCtx;
-        std::queue<ImguiTask> m_tasks;
-        static double m_lastFrameTime;
-        static double m_targetFrameTime;
-        static bool m_enableFrameLimiter;
-        ImguiJob(GLFW_VK_ImguiContext* ctx)
-        {
-            m_imguiCtx = ctx;
-        }
-        void addUI(ImguiTask ui)
-        {
-            m_tasks.push(ui);
-        }
-        void submit(RHI::CommandBuffer* cmdBuf) override;
-    };
     class GLFW_VK_ImguiContext : public ImguiContext
     {
     protected:
@@ -33,7 +16,6 @@ namespace FCT
         GLFW_Window* m_wnd;
         VK_Context* m_ctx;
         std::string m_passName;
-        ImguiJob* m_currentJob;
         std::queue<UIDeclare> m_uiDeclares[2];
         uint32_t m_currentPush;
         uint32_t m_currentShow;
@@ -122,20 +104,9 @@ namespace FCT
             drawData(cmdBuf);
         }
         void newFrame();
-        void submitJob()
-        {
-            m_ctx->submit(m_currentJob,m_passName);
-            m_currentJob->release();
-            m_currentJob = new ImguiJob(this);
-        }
-        void addUi(ImguiTask task)
-        {
-            m_currentJob->addUI(task);
-        }
         void submitTick(RHI::CommandBuffer* cmdBuffer);
         void render();
         void drawData(RHI::CommandBuffer* cmdBuffer);
-
         void create(RHI::Pass* pass)
         {
             m_passGroup = pass->group();
@@ -164,14 +135,6 @@ namespace FCT
             m_sampler->setLinear();
             m_sampler->create();
         }
-        void attachPass(const std::string& name)
-        {
-            m_passName = name;
-            OldPass* pass = m_ctx->findPass(name);
-            RHI::Pass* rhiPass = pass->rhiPass();
-            create(rhiPass);
-            m_currentJob = new ImguiJob(this);
-        }
     protected:
         void newFrame_updataSize();
         void newFrame_UpdateMouseData();
@@ -182,56 +145,10 @@ namespace FCT
         void newFrame_updateInput();
     };
 
-    inline void ImguiJob::submit(RHI::CommandBuffer* cmdBuf)
-    {
-        ScopeTimer ImguiJobTimer("ImguiJob");
-        if (m_enableFrameLimiter)
-        {
-            double currentTime = glfwGetTime();
-            double elapsedTime = currentTime - m_lastFrameTime;
-            if (elapsedTime < m_targetFrameTime)
-            {
-                m_imguiCtx->drawData(cmdBuf);
-                return;
-            } else
-            {
-                m_imguiCtx->newFrame();
-                while (!m_tasks.empty()) {
-                    ImguiTask task = m_tasks.front();
-                    m_tasks.pop();
-
-                    if (task) {
-                        task();
-                    }
-                }
-                m_imguiCtx->render();
-                m_imguiCtx->drawData(cmdBuf);
-            }
-            m_lastFrameTime = currentTime;
-        } else
-        {
-            m_imguiCtx->newFrame();
-            while (!m_tasks.empty()) {
-                ImguiTask task = m_tasks.front();
-                m_tasks.pop();
-
-                if (task) {
-                    task();
-                }
-            }
-            m_imguiCtx->render();
-            m_imguiCtx->drawData(cmdBuf);
-        }
-    }
-
     inline GLFW_VK_ImguiContext::GLFW_VK_ImguiContext(GLFW_Window* wnd, VK_Context* ctx)
     {
         m_wnd = wnd;
         m_ctx = ctx;
-        m_currentJob = nullptr;
-        ImguiJob::m_lastFrameTime = glfwGetTime();
-        ImguiJob::m_targetFrameTime = 1.0 / 60.0;
-        ImguiJob::m_enableFrameLimiter = false;
         m_currentPush = 0;
         m_currentShow = 1;
     }
@@ -241,11 +158,6 @@ namespace FCT
         for (auto img : m_textures)
         {
             removeTexture(img.first);
-        }
-        if (m_currentJob)
-        {
-            m_currentJob->release();
-            m_currentJob = nullptr;
         }
     }
 
