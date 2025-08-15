@@ -44,6 +44,9 @@ namespace FCT {
         virtual void updateTexture(std::string name) = 0;
         virtual ImTextureID getTexture(std::string name) = 0;
         bool enableChinese(float size = 18.0f,const char* fontPath = "C:\\Windows\\Fonts\\simsun.ttc");
+
+        static void createMainDockSpace(const char* dockspaceName);
+
     protected:
         RHI::Pass* m_pass;
     };
