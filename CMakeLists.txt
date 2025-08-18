@@ -11,6 +11,10 @@ set(IMGUI_SOURCES
         imgui/backends/imgui_impl_glfw.cpp
 )
 
+set(IMNODES_SOURCES
+        imnodes/imnodes.cpp
+)
+
 file(GLOB FCT_IMGUI_HEADERS
         LIST_DIRECTORIES false
         CONFIGURE_DEPENDS
@@ -24,6 +28,7 @@ add_library(FCT_IMGUI STATIC
         src/ImguiContext.cpp
         src/headers.cpp
         ${IMGUI_SOURCES}
+        ${IMNODES_SOURCES}
 )
 
 file(MAKE_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/include)
@@ -48,6 +53,7 @@ endforeach()
 target_include_directories(FCT_IMGUI PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}/imgui
         ${CMAKE_CURRENT_SOURCE_DIR}/imgui/backends
+        ${CMAKE_CURRENT_SOURCE_DIR}/imnodes
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
         $<INSTALL_INTERFACE:include>
 )

@@ -20,6 +20,7 @@ namespace FCT
         uint32_t m_currentPush;
         uint32_t m_currentShow;
         std::unordered_map<std::string,Image*> m_textures;
+        std::unordered_map<std::string,size_t> m_texturesHash;
         std::unordered_map<std::string,std::vector<VkDescriptorSet>> m_textureIds;
         RHI::VK_Sampler* m_sampler;
    public:
@@ -134,6 +135,28 @@ namespace FCT
             m_sampler = static_cast<RHI::VK_Sampler*>(m_ctx->createResource<Sampler>());
             m_sampler->setLinear();
             m_sampler->create();
+            auto& sync = m_ctx->syncTickers();
+            sync[ImguiTicker::RecreateDescriptorSync] = {
+                [this]()
+                {
+                    std::vector<std::string> needUpdate = {};
+                    for (auto it : m_textures)
+                    {
+                        auto hash = it.second->textureViewHash();
+                        if (m_texturesHash[it.first] != hash)
+                        {
+                            m_texturesHash[it.first] = hash;
+                            needUpdate.push_back(it.first);
+                        }
+                    }
+                    for (auto name : needUpdate)
+                    {
+                        updateTexture(name);
+                    }
+                },
+                {InnerSync::CheckRecreateSwapchainSync},
+                {}
+            };
         }
     protected:
         void newFrame_updataSize();

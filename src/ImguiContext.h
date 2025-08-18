@@ -5,6 +5,10 @@
 #ifndef IMGUICONTEXT_H
 #define IMGUICONTEXT_H
 namespace FCT {
+    namespace ImguiTicker
+    {
+        constexpr const char* RecreateDescriptorSync = "ImguiRecreateDescriptorSync";
+    }
     using UIDeclare = std::function<void(void)>;
     enum class ImguiContextCreateFlag
     {
