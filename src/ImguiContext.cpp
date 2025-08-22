@@ -1,6 +1,6 @@
 ﻿#include "ImguiContext.h"
 namespace FCT {
-    ImguiContext::ImguiContext()
+    ImguiContext::ImguiContext(Context* ctx) : m_ctx(ctx)
     {
         m_pass = nullptr;
     }
@@ -27,7 +27,29 @@ namespace FCT {
         {
             io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
         }
-        createPlatform();
+        if (m_passName.empty())
+            createPlatform();
+        else
+        {
+            m_ctx->pipeHub().passPipe.subscribe<PassInfo>(m_passName,[this](PassInfo& info)
+            {
+                m_pass = &info.pass;
+                m_texturesFromPass = info.textures;
+                createPlatform();
+                for (const auto& texture : m_texturesFromPass)
+                {
+                    addTexture(texture.first,texture.second);
+                }
+            },[this]()
+            {
+                for (const auto& texture : m_texturesFromPass)
+                {
+                    removeTexture(texture.first);
+                }
+                destroyPlatform();
+                m_texturesFromPass.clear();
+            });
+        }
     }
 
     bool ImguiContext::enableChinese(float size,const char* fontPath)
@@ -66,5 +88,17 @@ namespace FCT {
         ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), ImGuiDockNodeFlags_None);
 
         ImGui::End();
+    }
+
+    void ImguiContext::setupSyncTickers()
+    {
+        auto& sync = m_ctx->syncTickers();
+        sync[ImguiTicker::RecreateDescriptorSync] = {
+            [this]() {
+                updatePassResource();
+            },
+            {InnerSync::CheckRecreateSwapchainSync},
+            {}
+        };
     }
 }

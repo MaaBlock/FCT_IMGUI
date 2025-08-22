@@ -20,7 +20,7 @@ namespace FCT {
     class ImguiContext
     {
     public:
-        ImguiContext();
+        ImguiContext(Context* ctx);
         virtual ~ImguiContext() = default;
         /**
          * @brief push the declaration for imgui to the back buffer
@@ -41,18 +41,34 @@ namespace FCT {
          * @param pass The pass to create imgui context
          */
         virtual void createPlatform() = 0;
+        virtual void destroyPlatform() = 0;
+        void attachPass(const std::string& name)
+        {
+            m_passName = name;
+        }
         void create(ImguiContextCreateFlags flags = ImguiContextCreateFlag::Default);
-        ;
+        /**
+         * @cond CHINESE
+         * @brief  从PassPipe里获取Pass附着
+         * @param pass
+         * @endcond
+         */
         void pass(RHI::Pass* pass);
         virtual void addTexture(std::string name,Image* image) = 0;
+        virtual void removeTexture(std::string name) = 0;
         virtual void updateTexture(std::string name) = 0;
         virtual ImTextureID getTexture(std::string name) = 0;
         bool enableChinese(float size = 18.0f,const char* fontPath = "C:\\Windows\\Fonts\\simsun.ttc");
 
         static void createMainDockSpace(const char* dockspaceName);
-
+        virtual void updatePassResource() = 0;
+        void setupSyncTickers();
     protected:
         RHI::Pass* m_pass;
+        std::string m_passName;
+        Context* m_ctx;
+        bool m_platformInitialized = false;
+        std::map<std::string, Image*> m_texturesFromPass;
     };
 
 
