@@ -14,6 +14,11 @@ namespace FCT
             if (m_platformInitialized)
                 newFrame_updateInput();
         });
+        /*
+        m_wnd->postTicker([this]()
+        {
+            newFrame_updateInput();
+        });*/
     }
 
     GLFW_VK_ImguiContext::~GLFW_VK_ImguiContext()
@@ -163,10 +168,6 @@ namespace FCT
         initInfo.RenderPass = static_cast<RHI::VK_PassGroup*>(m_passGroup)->getRenderPass();
         initInfo.Subpass = m_pass->index();
         ImGui_ImplVulkan_Init(&initInfo);
-        m_wnd->postTicker([this]()
-        {
-            newFrame_updateInput();
-        });
         m_sampler = static_cast<RHI::VK_Sampler*>(m_vkCtx->createResource<Sampler>());
         m_sampler->setLinear();
         m_sampler->create();
