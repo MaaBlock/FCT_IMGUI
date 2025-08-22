@@ -58,12 +58,29 @@ namespace FCT {
         virtual void removeTexture(std::string name) = 0;
         virtual void updateTexture(std::string name) = 0;
         virtual ImTextureID getTexture(std::string name) = 0;
+        /**
+         * @cond CHINESE
+         * 开启中文支持
+         * @param size 字体大小
+         * @param fontPath 字体路径
+         * @return 加载字体成功与否
+         * @endcond
+         */
         bool enableChinese(float size = 18.0f,const char* fontPath = "C:\\Windows\\Fonts\\simsun.ttc");
-
         static void createMainDockSpace(const char* dockspaceName);
-        virtual void updatePassResource() = 0;
-        void setupSyncTickers();
+        std::map<std::string, Image*> getTexturesFromPass() const
+        {
+            return m_texturesFromPass;
+        }
     protected:
+        /**
+         * 设置同步 ticker，用来调用updatePassResource
+         */
+        void setupSyncTickers();
+        /**
+         * 更新添加的Texture对应的描述符集
+         */
+        virtual void updatePassResource() = 0;
         RHI::Pass* m_pass;
         std::string m_passName;
         Context* m_ctx;

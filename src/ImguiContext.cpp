@@ -3,6 +3,7 @@ namespace FCT {
     ImguiContext::ImguiContext(Context* ctx) : m_ctx(ctx)
     {
         m_pass = nullptr;
+        setupSyncTickers();
     }
 
     void ImguiContext::pass(RHI::Pass* pass)
