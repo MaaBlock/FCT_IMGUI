@@ -55,13 +55,16 @@ namespace FCT
     void GLFW_VK_ImguiContext::addTexture(std::string name, SingleBufferImage* image)
     {
         m_textures[name] = image;
-        image->currentTextureView();
-        RHI::VK_TextureView* tv = static_cast<RHI::VK_TextureView*>(image->currentTextureView());
-        vk::ImageView imageViewVk = tv->view();
-        vk::Sampler samplerVk = m_sampler->getSampler();
-        VkDescriptorSet descriptorSet = ImGui_ImplVulkan_AddTexture(
-            samplerVk, imageViewVk, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
-        m_textureIds[name].push_back(descriptorSet);
+        if (m_platformInitialized)
+        {
+            image->currentTextureView();
+            RHI::VK_TextureView* tv = static_cast<RHI::VK_TextureView*>(image->currentTextureView());
+            vk::ImageView imageViewVk = tv->view();
+            vk::Sampler samplerVk = m_sampler->getSampler();
+            VkDescriptorSet descriptorSet = ImGui_ImplVulkan_AddTexture(
+                samplerVk, imageViewVk, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+            m_textureIds[name].push_back(descriptorSet);
+        }
     }
 
     void GLFW_VK_ImguiContext::addTexture(std::string name, Image* image)
