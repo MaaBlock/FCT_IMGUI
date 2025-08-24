@@ -14,13 +14,14 @@ namespace FCT
             if (m_platformInitialized)
                 newFrame_updateInput();
         });
+        /*
         m_wnd->getCallBack()->addFileDropCallback([this](Window*, const std::vector<std::string>& paths)
         {
             if (m_platformInitialized)
             {
 
             }
-        });
+        });*/
         /*
         m_wnd->postTicker([this]()
         {
