@@ -1,4 +1,5 @@
 include(platform/platform.cmake)
+include(config/set_utf8_compiler_encoding.cmake)
 
 # ImGui核心源文件 - 直接使用当前目录下的imgui源码
 set(IMGUI_SOURCES
@@ -31,6 +32,7 @@ add_library(FCT_IMGUI STATIC
         ${IMGUI_SOURCES}
         ${IMNODES_SOURCES}
 )
+set_utf8_for_target(FCT_IMGUI)
 
 file(MAKE_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/include)
 file(MAKE_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/include/FCT_IMGUI)
