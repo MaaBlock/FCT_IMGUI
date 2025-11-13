@@ -18,6 +18,7 @@ namespace FCT {
         if (flags & ImguiContextCreateFlag::Docking)
         {
             io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
+            io.ConfigFlags |= ImGuiConfigFlags_IsSRGB;
 
             io.ConfigDockingWithShift = false;
             io.ConfigDockingAlwaysTabBar = true;

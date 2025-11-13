@@ -1,8 +1,8 @@
 #ifndef VK_GLFW_IMGUICONTEXT_H
 #define VK_GLFW_IMGUICONTEXT_H
 #include "ImguiContext.h"
-
-struct ImGui_ImplGlfw_Data;
+#include "imgui_impl_glfw.h"
+#include "imgui_impl_vulkan.h"
 
 namespace FCT
 {
@@ -42,14 +42,6 @@ namespace FCT
         void updatePassResource() override;
         void createPlatform() override;
         void destroyPlatform() override;
-    protected:
-        void newFrame_updataSize();
-        void newFrame_UpdateMouseData();
-        void newFrame_updataTime();
-        void newFrame_UpdateMonitors();
-        void newFrame_updateMouseCursor();
-        void newFrame_UpdateGamepads();
-        void newFrame_updateInput();
     };
 
 }
