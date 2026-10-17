@@ -29,21 +29,41 @@ namespace FCT
 
     ImguiContext* ImguiModule::createContext(Window* wnd, Context* ctx)
     {
-#ifdef FCT_USE_GLFW
-        if (dynamic_cast<GLFW_Window*>(wnd))
+#ifdef FCT_WIN32
+        if (auto* win32Wnd = dynamic_cast<Win32_Window*>(wnd))
         {
-#ifdef  FCT_USE_VULKAN
-            if (dynamic_cast<VK_Context*>(ctx))
+#ifdef FCT_USE_D3D12
+            if (auto* d3dCtx = dynamic_cast<D3D12_Context*>(ctx))
             {
-                return new GLFW_VK_ImguiContext(
-                    dynamic_cast<GLFW_Window*>(wnd),
-                    dynamic_cast<VK_Context*>(ctx)
-                    );
+                return new Win32_D3D12_ImguiContext(win32Wnd, d3dCtx);
+            }
+#endif
+#ifdef FCT_USE_VULKAN
+            if (auto* vkCtx = dynamic_cast<VK_Context*>(ctx))
+            {
+                return new Win32_VK_ImguiContext(win32Wnd, vkCtx);
             }
 #endif
         }
 #endif
-
+#ifdef FCT_USE_GLFW
+        if (auto* glfwWnd = dynamic_cast<GLFW_Window*>(wnd))
+        {
+#ifdef FCT_USE_VULKAN
+            if (auto* vkCtx = dynamic_cast<VK_Context*>(ctx))
+            {
+                return new GLFW_VK_ImguiContext(glfwWnd, vkCtx);
+            }
+#endif
+#ifdef FCT_USE_D3D12
+            if (auto* d3dCtx = dynamic_cast<D3D12_Context*>(ctx))
+            {
+                return new GLFW_D3D12_ImguiContext(glfwWnd, d3dCtx);
+            }
+#endif
+        }
+#endif
+        return nullptr;
     }
 
 /*

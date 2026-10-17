@@ -123,9 +123,11 @@ namespace FCT
 
     void GLFW_VK_ImguiContext::submit(RHI::CommandBuffer* cmdBuf)
     {
+        ZoneScoped();
         newFrame();
         while (!m_uiDeclares[m_currentShow].empty())
         {
+            ZoneScopedN("ImGui::UIDeclare");
             auto uiFunc = m_uiDeclares[m_currentShow].front();
             uiFunc();
             m_uiDeclares[m_currentShow].pop();
@@ -136,6 +138,7 @@ namespace FCT
 
     void GLFW_VK_ImguiContext::newFrame()
     {
+        ZoneScoped();
         ImGui_ImplVulkan_NewFrame();
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
@@ -143,6 +146,7 @@ namespace FCT
 
     void GLFW_VK_ImguiContext::updatePassResource()
     {
+        ZoneScoped();
         if (!m_platformInitialized)
             return;
         std::vector<std::string> needUpdate = {};
@@ -163,6 +167,7 @@ namespace FCT
 
     void GLFW_VK_ImguiContext::createPlatform()
     {
+        ZoneScoped();
         m_passGroup = m_pass->group();
         ImGui_ImplGlfw_InitForVulkan(m_wnd->getWindow(), true);
         ImGui_ImplVulkan_InitInfo initInfo{};
@@ -191,6 +196,7 @@ namespace FCT
 
     void GLFW_VK_ImguiContext::submitTick(RHI::CommandBuffer* cmdBuffer)
     {
+        ZoneScoped();
         ImGui::Render();
         ImDrawData* drawData = ImGui::GetDrawData();
 
@@ -200,11 +206,13 @@ namespace FCT
 
     void GLFW_VK_ImguiContext::render()
     {
+        ZoneScoped();
         ImGui::Render();
     }
 
     void GLFW_VK_ImguiContext::drawData(RHI::CommandBuffer* cmdBuffer)
     {
+        ZoneScoped();
         ImDrawData* drawData = ImGui::GetDrawData();
 
         VkCommandBuffer vkCmdBuffer = static_cast<RHI::VK_CommandBuffer*>(cmdBuffer)->commandBuffer();
@@ -214,6 +222,7 @@ namespace FCT
 
     void GLFW_VK_ImguiContext::destroyPlatform()
     {
+        ZoneScoped();
         if (!m_platformInitialized)
             return;
         m_platformInitialized = false;

@@ -10,8 +10,14 @@
 #ifdef FCT_USE_VULKAN
 #include <imgui_impl_vulkan.h>
 #endif
+#ifdef FCT_USE_D3D12
+#include <imgui_impl_dx12.h>
+#endif
 #ifdef FCT_USE_GLFW
 #include <imgui_impl_glfw.h>
+#endif
+#ifdef FCT_WIN32
+#include <imgui_impl_win32.h>
 #endif
 #endif //THIRDPARTY_H
 

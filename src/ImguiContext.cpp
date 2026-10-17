@@ -1,4 +1,4 @@
-﻿#include "ImguiContext.h"
+#include "ImguiContext.h"
 namespace FCT {
     ImguiContext::ImguiContext(Context* ctx) : m_ctx(ctx)
     {
@@ -13,6 +13,7 @@ namespace FCT {
 
     void ImguiContext::create(ImguiContextCreateFlags flags)
     {
+        ZoneScoped();
         ImGuiIO& io = ImGui::GetIO();
 
         if (flags & ImguiContextCreateFlag::Docking)
@@ -56,6 +57,7 @@ namespace FCT {
 
     bool ImguiContext::enableChinese(float size,const char* fontPath)
     {
+        ZoneScoped();
         ImGuiIO& io = ImGui::GetIO();
         ImFont* font = io.Fonts->AddFontFromFileTTF(fontPath, size, nullptr,
             io.Fonts->GetGlyphRangesChineseFull());
@@ -69,6 +71,7 @@ namespace FCT {
 
     void ImguiContext::createMainDockSpace(const char* dockspaceName)
     {
+        ZoneScoped();
         ImGuiViewport* viewport = ImGui::GetMainViewport();
         ImGui::SetNextWindowPos(viewport->Pos);
         ImGui::SetNextWindowSize(viewport->Size);

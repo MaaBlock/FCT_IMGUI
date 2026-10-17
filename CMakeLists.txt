@@ -9,8 +9,18 @@ set(IMGUI_SOURCES
         imgui/imgui_tables.cpp
         imgui/imgui_widgets.cpp
         imgui/backends/imgui_impl_vulkan.cpp
-        imgui/backends/imgui_impl_glfw.cpp
 )
+
+if (NOT FCT_ANDROID)
+    list(APPEND IMGUI_SOURCES imgui/backends/imgui_impl_glfw.cpp)
+endif()
+
+if (FCT_WIN32)
+    list(APPEND IMGUI_SOURCES
+            imgui/backends/imgui_impl_win32.cpp
+            imgui/backends/imgui_impl_dx12.cpp
+    )
+endif()
 
 set(IMNODES_SOURCES
         imnodes/imnodes.cpp
@@ -28,10 +38,19 @@ list(FILTER FCT_IMGUI_HEADERS EXCLUDE REGEX ".*FCT_IMGUI\\.h$")
 add_library(FCT_IMGUI STATIC
         src/ImguiContext.cpp
         src/headers.cpp
-        src/GLFW_VK_ImguiContext.cpp
         ${IMGUI_SOURCES}
         ${IMNODES_SOURCES}
 )
+if (NOT FCT_ANDROID)
+    target_sources(FCT_IMGUI PRIVATE src/GLFW_VK_ImguiContext.cpp)
+endif()
+if (FCT_WIN32)
+    target_sources(FCT_IMGUI PRIVATE
+            src/Win32_D3D12_ImguiContext.cpp
+            src/Win32_VK_ImguiContext.cpp
+            src/GLFW_D3D12_ImguiContext.cpp
+    )
+endif()
 set_utf8_for_target(FCT_IMGUI)
 
 file(MAKE_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/include)
@@ -61,15 +80,26 @@ target_include_directories(FCT_IMGUI PUBLIC
         $<INSTALL_INTERFACE:include>
 )
 
-find_package(Vulkan REQUIRED)
-target_link_libraries(FCT_IMGUI PRIVATE FCT
-        ${Vulkan_LIBRARIES}
-)
-
-find_package(Vulkan REQUIRED)
-target_link_libraries(FCT_IMGUI PRIVATE FCT
-        ${Vulkan_LIBRARIES}
-)
+if (FCT_ANDROID)
+    find_package(VulkanHeaders CONFIG REQUIRED)
+    target_link_libraries(FCT_IMGUI PRIVATE FCT
+            Vulkan::Headers
+            vulkan
+    )
+else()
+    find_package(Vulkan REQUIRED)
+    target_link_libraries(FCT_IMGUI PRIVATE FCT
+            ${Vulkan_LIBRARIES}
+    )
+    if (FCT_WIN32)
+        target_link_libraries(FCT_IMGUI PRIVATE
+                d3d12
+                dxgi
+                d3dcompiler
+                dwmapi
+        )
+    endif()
+endif()
 
 function(target_link_fct_imgui_libraries target_name)
     target_link_libraries(${target_name} FCT_IMGUI)
