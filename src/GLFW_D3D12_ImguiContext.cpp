@@ -21,15 +21,12 @@ namespace FCT
 
     GLFW_D3D12_ImguiContext::SrvDescriptorPair GLFW_D3D12_ImguiContext::allocSrvDescriptor()
     {
-        std::lock_guard<std::mutex> lock(m_descriptorMutex);
-        if (!m_freeDescriptors.empty())
+        SrvDescriptorPair pair{};
+        if (m_freeDescriptors.pop(pair))
         {
-            SrvDescriptorPair pair = m_freeDescriptors.back();
-            m_freeDescriptors.pop_back();
             return pair;
         }
 
-        SrvDescriptorPair pair{};
         auto* descPool = static_cast<RHI::D3D12_DescriptorPool*>(m_d3dCtx->getDescriptorPool());
         if (descPool)
         {
@@ -45,8 +42,7 @@ namespace FCT
         {
             return;
         }
-        std::lock_guard<std::mutex> lock(m_descriptorMutex);
-        m_freeDescriptors.push_back(pair);
+        m_freeDescriptors.push(pair);
     }
 
     DXGI_FORMAT GLFW_D3D12_ImguiContext::resolveRtvFormat() const

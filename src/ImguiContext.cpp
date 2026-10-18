@@ -69,7 +69,7 @@ namespace FCT {
         return true;
     }
 
-    void ImguiContext::createMainDockSpace(const char* dockspaceName)
+    ImGuiID ImguiContext::createMainDockSpace(const char* dockspaceName)
     {
         ZoneScoped();
         ImGuiViewport* viewport = ImGui::GetMainViewport();
@@ -93,6 +93,7 @@ namespace FCT {
         ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), ImGuiDockNodeFlags_None);
 
         ImGui::End();
+        return dockspace_id;
     }
 
     void ImguiContext::setupSyncTickers()

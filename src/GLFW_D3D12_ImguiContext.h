@@ -13,8 +13,8 @@ namespace FCT
     protected:
         struct SrvDescriptorPair
         {
-            D3D12_CPU_DESCRIPTOR_HANDLE cpuHandle{0};
-            D3D12_GPU_DESCRIPTOR_HANDLE gpuHandle{0};
+            D3D12_CPU_DESCRIPTOR_HANDLE cpuHandle;
+            D3D12_GPU_DESCRIPTOR_HANDLE gpuHandle;
         };
 
         RHI::PassGroup* m_passGroup;
@@ -26,8 +26,7 @@ namespace FCT
         std::unordered_map<std::string, Image*> m_textures;
         std::unordered_map<std::string, size_t> m_texturesHash;
         std::unordered_map<std::string, std::vector<SrvDescriptorPair>> m_textureIds;
-        std::vector<SrvDescriptorPair> m_freeDescriptors;
-        std::mutex m_descriptorMutex;
+        boost::lockfree::queue<SrvDescriptorPair, boost::lockfree::capacity<1024>> m_freeDescriptors;
 
         SrvDescriptorPair allocSrvDescriptor();
         void freeSrvDescriptor(const SrvDescriptorPair& pair);

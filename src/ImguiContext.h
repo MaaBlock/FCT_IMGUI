@@ -67,7 +67,7 @@ namespace FCT {
          * @endcond
          */
         bool enableChinese(float size = 18.0f,const char* fontPath = "C:\\Windows\\Fonts\\simsun.ttc");
-        static void createMainDockSpace(const char* dockspaceName);
+        static ImGuiID createMainDockSpace(const char* dockspaceName);
         std::map<std::string, Image*> getTexturesFromPass() const
         {
             return m_texturesFromPass;
